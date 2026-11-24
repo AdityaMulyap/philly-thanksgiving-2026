@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Philly Thanksgiving Trip</title>
+<style>
+  :root {
+    --bg: #faf8f5; --card: #ffffff; --text: #1f1d1a; --muted: #6b665f;
+    --line: #e6e1d9; --accent: #b4532a; --hover: #f5efe7; --closed: #a39e96;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         background: var(--bg); color: var(--text); }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; font-size: 14px; }
+  h2 { font-size: 16px; margin: 28px 0 8px; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; background: var(--card);
+          border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table { table-layout: fixed; }
+  th:nth-child(1) { width: 40%; }
+  th:nth-child(2), th:nth-child(3) { width: 25%; }
+  th:nth-child(4) { width: 10%; }
+  th { background: #f1ece4; font-weight: 600; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--hover); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.name { font-weight: 500; }
+  tr.closed td { color: var(--closed); }
+  .go { color: var(--accent); font-weight: 600; white-space: nowrap; }
+
+  /* map screen */
+  #mapView { display: none; height: 100vh; flex-direction: column; }
+  #mapView.on { display: flex; }
+  .bar { display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+         background: var(--card); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .bar button { font: inherit; padding: 8px 14px; border: 1px solid var(--line);
+                background: var(--bg); border-radius: 6px; cursor: pointer; }
+  .bar button:hover { background: var(--hover); }
+  .bar .info { flex: 1; min-width: 200px; }
+  .bar .info b { display: block; font-size: 16px; }
+  .bar .info span { color: var(--muted); font-size: 13px; }
+  .bar a { color: var(--accent); font-weight: 600; text-decoration: none; }
+  iframe { flex: 1; width: 100%; border: 0; }
+
+  @media (max-width: 600px) {
+    th:nth-child(4), td:nth-child(4) { display: none; }
+    th, td { padding: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="listView" class="wrap">
+  <h1>Philly Thanksgiving Weekend</h1>
+  <p class="sub">Fri Nov 27 – Sat Nov 28, 2026 · Click any row to see it on Google Maps</p>
+  <div id="tables"></div>
+</div>
+
+<div id="mapView">
+  <div class="bar">
+    <button id="back">← Back to list</button>
+    <button id="prev">‹ Prev</button>
+    <button id="next">Next ›</button>
+    <div class="info"><b id="mName"></b><span id="mHours"></span></div>
+    <a id="mLink" target="_blank" rel="noopener">Open in Google Maps ↗</a>
+  </div>
+  <iframe id="frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+</div>
+
+<script>
+// q = search text used for the embedded map; link = the link from the PDF
+const PLACES = {
+  "Museums": [
+    { name: "Philadelphia Museum of Art", fri: "10am - 8:45pm", sat: "10am - 5pm", q: "Philadelphia Museum of Art" },
+    { name: "Rodin Museum", fri: "Not found", sat: "Not found", q: "Rodin Museum Philadelphia" },
+    { name: "Franklin Institute", fri: "9:30am - 5pm", sat: "9:30am - 5pm", q: "Franklin Institute Philadelphia" },
+    { name: "Mütter Museum", fri: "10am - 5pm", sat: "10am - 5pm", q: "Mutter Museum Philadelphia" },
+    { name: "Museum of the American Revolution", fri: "9:30am - 6pm", sat: "9:30am - 6pm", q: "Museum of the American Revolution Philadelphia" },
+    { name: "Eastern State Penitentiary", fri: "10am - 5pm", sat: "10am - 5pm", q: "Eastern State Penitentiary Philadelphia" },
+    { name: "Barnes Foundation", fri: "11am - 5pm", sat: "11am - 5pm", q: "Barnes Foundation Philadelphia" },
+    { name: "American Swedish Historical Museum", fri: "10am - 4pm", sat: "12pm - 4pm", q: "American Swedish Historical Museum Philadelphia" },
+    { name: "National Constitution Center", fri: "10am - 5pm", sat: "10am - 5pm", q: "National Constitution Center Philadelphia" },
+    { name: "Penn Museum", fri: "10am - 5pm", sat: "10am - 5pm", q: "Penn Museum Philadelphia" },
+    { name: "Science History Institute", fri: "Closed", sat: "Closed", q: "Science History Institute Philadelphia" },
+    { name: "Academy of Natural Sciences", fri: "Closed", sat: "Closed", q: "Academy of Natural Sciences Philadelphia" },
+  ],
+  "Food": [
+    { name: "Reading Terminal Market", fri: "8am - 6pm", sat: "8am - 6pm", q: "Reading Terminal Market Philadelphia", link: "https://maps.app.goo.gl/u7ebjpXydBgcGweK9" },
+    { name: "Sky Cafe", fri: "11am - 8pm", sat: "11am - 8pm", q: "Sky Cafe Indonesian Philadelphia", link: "https://maps.app.goo.gl/gnonpEcioCj5szE29" },
+    { name: "Djakarta Cafe", fri: "11am - 7:30pm", sat: "11am - 7:30pm", q: "Djakarta Cafe Philadelphia", link: "https://maps.app.goo.gl/YQr3CmU9UZaC79YdA" },
+    { name: "Martabak Ok", fri: "12pm - 6pm", sat: "12pm - 6pm", q: "Martabak Ok Philadelphia", link: "https://maps.app.goo.gl/9Kk4kS91qRkxMvfQ7" },
+    { name: "Suraya Restaurant", fri: "11am - 2pm, 5pm - 11pm", sat: "10am - 2pm, 5pm - 11pm", q: "Suraya Restaurant Philadelphia", link: "https://share.google/MPWQhkVBzZ0Xt6K6A" },
+    { name: "Angelo's Pizzeria (736 S 9th St)", fri: "11am - 7pm", sat: "11am - 7pm", q: "Angelo's Pizzeria 736 S 9th St Philadelphia" },
+  ],
+};
+
+const all = [];
+const tables = document.getElementById("tables");
+
+for (const [group, items] of Object.entries(PLACES)) {
+  const h = document.createElement("h2");
+  h.textContent = group;
+  tables.appendChild(h);
+
+  const t = document.createElement("table");
+  t.innerHTML = `<thead><tr><th>${group === "Food" ? "Place" : "Museum"}</th>
+    <th>Fri Nov 27</th><th>Sat Nov 28</th><th></th></tr></thead>`;
+  const tb = document.createElement("tbody");
+
+  for (const p of items) {
+    const i = all.push(p) - 1;
+    const tr = document.createElement("tr");
+    if (p.fri === "Closed" && p.sat === "Closed") tr.className = "closed";
+    tr.innerHTML = `<td class="name"></td><td></td><td></td><td class="go">Map →</td>`;
+    tr.children[0].textContent = p.name;
+    tr.children[1].textContent = p.fri;
+    tr.children[2].textContent = p.sat;
+    tr.onclick = () => openMap(i);
+    tb.appendChild(tr);
+  }
+  t.appendChild(tb);
+  tables.appendChild(t);
+}
+
+let current = 0;
+const $ = id => document.getElementById(id);
+
+function openMap(i) {
+  current = (i + all.length) % all.length;
+  const p = all[current];
+  const q = encodeURIComponent(p.q);
+  $("frame").src = `https://maps.google.com/maps?q=${q}&z=15&output=embed`;
+  $("mName").textContent = p.name;
+  $("mHours").textContent = `Fri: ${p.fri} · Sat: ${p.sat}`;
+  $("mLink").href = p.link || `https://www.google.com/maps/search/?api=1&query=${q}`;
+  $("listView").style.display = "none";
+  $("mapView").classList.add("on");
+  history.replaceState(null, "", "#" + current);
+}
+
+function closeMap() {
+  $("mapView").classList.remove("on");
+  $("listView").style.display = "";
+  history.replaceState(null, "", location.pathname);
+}
+
+$("back").onclick = closeMap;
+$("prev").onclick = () => openMap(current - 1);
+$("next").onclick = () => openMap(current + 1);
+document.addEventListener("keydown", e => {
+  if (!$("mapView").classList.contains("on")) return;
+  if (e.key === "Escape") closeMap();
+  if (e.key === "ArrowLeft") openMap(current - 1);
+  if (e.key === "ArrowRight") openMap(current + 1);
+});
+</script>
+</body>
+</html>
