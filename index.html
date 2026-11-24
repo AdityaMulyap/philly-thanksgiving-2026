@@ -2,273 +2,191 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#faf8f5">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Philly Thanksgiving Trip</title>
-<style>
-  :root {
-    --bg: #faf8f5; --card: #ffffff; --text: #1f1d1a; --muted: #6b665f;
-    --line: #e6e1d9; --accent: #b4532a; --hover: #f5efe7; --closed: #8f8a82;
-    --head: #f1ece4; --star: #e0a526; --ta: #00aa6c;
-  }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html { -webkit-text-size-adjust: 100%; }
-  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-         background: var(--bg); color: var(--text); line-height: 1.4; }
-  .wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
-  h1 { font-size: 24px; margin: 0 0 4px; }
-  .sub { color: var(--muted); margin: 0 0 8px; font-size: 14px; }
-  h2 { font-size: 15px; margin: 28px 0 8px; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); }
-
-  /* table (desktop) */
-  table { width: 100%; border-collapse: collapse; background: var(--card); table-layout: fixed;
-          border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 14px; }
-  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-  th { background: var(--head); font-weight: 600; }
-  th.c-name { width: 38%; } th.c-day { width: 22%; } th.c-map { width: 18%; }
-  tr.row { cursor: pointer; }
-  tr.row:hover { background: var(--hover); }
-  tr.row.open { background: var(--hover); }
-  td.name { font-weight: 600; }
-  td.name .chev { display: inline-block; width: 14px; color: var(--muted); transition: transform .15s; }
-  tr.row.open .chev { transform: rotate(90deg); }
-  .mini { display: block; font-weight: 400; color: var(--muted); font-size: 12px; margin-top: 2px; padding-left: 14px; }
-  tr.closed td { color: var(--closed); }
-  .mapbtn { font: inherit; font-size: 13px; font-weight: 600; color: #fff; background: var(--accent);
-            border: 0; border-radius: 6px; padding: 8px 12px; cursor: pointer; min-height: 36px; white-space: nowrap; }
-  .mapbtn:hover { filter: brightness(1.08); }
-  .day-lbl { display: none; }
-
-  /* hidden review panel */
-  tr.detail { display: none; }
-  tr.detail.open { display: table-row; }
-  tr.detail td { background: #fffdfa; padding: 12px; }
-  .reviews { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .rv { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--card);
-        text-decoration: none; color: inherit; display: block; }
-  a.rv:hover { border-color: var(--accent); }
-  .rv .src { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
-  .rv.g .src { color: #1a73e8; } .rv.t .src { color: var(--ta); }
-  .rv .score { font-size: 20px; font-weight: 700; margin-top: 2px; }
-  .rv .stars { color: var(--star); font-size: 15px; letter-spacing: 1px; }
-  .rv .count { color: var(--muted); font-size: 13px; }
-  .rv .more { font-size: 13px; font-weight: 600; color: var(--accent); margin-top: 4px; display: block; }
-  .rv.none .score { font-size: 15px; color: var(--muted); font-weight: 600; }
-  .note { color: var(--muted); font-size: 12px; margin-top: 16px; }
-
-  /* map screen */
-  #mapView { display: none; height: 100vh; height: 100dvh; flex-direction: column; }
-  #mapView.on { display: flex; }
-  .bar { display: flex; align-items: center; gap: 8px; padding: 10px 12px;
-         padding-top: max(10px, env(safe-area-inset-top));
-         background: var(--card); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-  .bar button { font: inherit; font-size: 14px; padding: 8px 12px; min-height: 40px; border: 1px solid var(--line);
-                background: var(--bg); border-radius: 8px; cursor: pointer; color: var(--text); }
-  .bar button:hover { background: var(--hover); }
-  .bar .info { flex: 1; min-width: 0; }
-  .bar .info b { display: block; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .bar .info span { color: var(--muted); font-size: 13px; }
-  .bar a { color: var(--accent); font-weight: 600; text-decoration: none; font-size: 14px; white-space: nowrap; }
-  iframe { flex: 1; width: 100%; border: 0; }
-
-  /* phone: rows become cards */
-  @media (max-width: 640px) {
-    .wrap { padding: 16px 12px 40px; }
-    h1 { font-size: 21px; }
-    table, thead, tbody, tr, td { display: block; width: 100%; }
-    table { border: 0; background: none; border-radius: 0; overflow: visible; }
-    thead { display: none; }
-    tr.row { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
-             margin-top: 10px; padding: 12px; position: relative; }
-    tr.row.open { border-radius: 10px 10px 0 0; border-bottom: 0; background: var(--card); }
-    tr.row td { border: 0; padding: 0; }
-    td.name { font-size: 16px; padding-right: 76px !important; }
-    td.day { display: inline-block; width: auto; font-size: 14px; margin-top: 6px; margin-right: 14px; }
-    .day-lbl { display: inline; color: var(--muted); font-weight: 600; margin-right: 4px; }
-    td.map { position: absolute; top: 12px; right: 12px; width: auto; }
-    .mapbtn { min-height: 40px; padding: 8px 14px; }
-    tr.detail.open { display: block; }
-    tr.detail td { border: 1px solid var(--line); border-top: 0; border-radius: 0 0 10px 10px; }
-    .reviews { grid-template-columns: 1fr; }
-    .bar { gap: 6px; }
-    .bar .info { order: -1; flex-basis: 100%; margin-bottom: 4px; }
-    .bar button { flex: 1; }
-    .bar a { flex-basis: 100%; text-align: center; padding: 6px 0 2px; }
-  }
-</style>
 </head>
 <body>
 
-<div id="listView" class="wrap">
-  <h1>Philly Thanksgiving Weekend</h1>
-  <p class="sub">Fri Nov 27 – Sat Nov 28, 2026 · Tap a place to see reviews · Tap <b>Map</b> to open Google Maps</p>
-  <div id="tables"></div>
-  <p class="note">Ratings checked Nov 24, 2026.</p>
-</div>
+<h1>Philly Thanksgiving Weekend</h1>
 
-<div id="mapView">
-  <div class="bar">
-    <div class="info"><b id="mName"></b><span id="mHours"></span></div>
-    <button id="back">← List</button>
-    <button id="prev">‹ Prev</button>
-    <button id="next">Next ›</button>
-    <a id="mLink" target="_blank" rel="noopener">Open in Google Maps ↗</a>
-  </div>
-  <iframe id="frame" referrerpolicy="no-referrer-when-downgrade" title="Google Map"></iframe>
-</div>
+<p>
+<button type="button" onclick="document.querySelectorAll('details').forEach(d => d.open = true)">Show all reviews</button>
+<button type="button" onclick="document.querySelectorAll('details').forEach(d => d.open = false)">Collapse all</button>
+</p>
 
-<script>
-// HOW TO ADD A PLACE: copy one entry, fill hours + q (map search text),
-// then look up the Google and TripAdvisor rating/count/url. Use null if a site has no rating.
-const PLACES = {
-  "Museums": [
-    { name: "Philadelphia Museum of Art", fri: "10am - 8:45pm", sat: "10am - 5pm", q: "Philadelphia Museum of Art",
-      google: { rating: 4.8, count: 23813, url: "https://search.google.com/local/reviews?placeid=ChIJ_5CoRebFxokR08ApAyF2KIs" },
-      ta: { rating: 4.7, count: 7527, url: "https://www.tripadvisor.com/Attraction_Review-g60795-d10800264-Reviews-Philadelphia_Museum_of_Art-Philadelphia_Pennsylvania.html" } },
-    { name: "Rodin Museum", fri: "Not found", sat: "Not found", q: "Rodin Museum Philadelphia",
-      google: { rating: 4.6, count: 2002, url: "https://search.google.com/local/reviews?placeid=ChIJ_5CoRebFxokRelxOueM6ctQ" },
-      ta: { rating: 4.5, count: 1493, url: "https://www.tripadvisor.com/Attraction_Review-g60795-d104746-Reviews-Rodin_Museum-Philadelphia_Pennsylvania.html" } },
-    { name: "Franklin Institute", fri: "9:30am - 5pm", sat: "9:30am - 5pm", q: "Franklin Institute Philadelphia",
-      google: { rating: 4.6, count: 14108, url: "https://search.google.com/local/reviews?placeid=ChIJ05tdhjTGxokReHRD0wXejyE" },
-      ta: { rating: 4.3, count: 3230, url: "https://www.tripadvisor.com/Attraction_Review-g60795-d1933077-Reviews-The_Franklin_Institute-Philadelphia_Pennsylvania.html" } },
-    { name: "Mütter Museum", fri: "10am - 5pm", sat: "10am - 5pm", q: "Mutter Museum Philadelphia",
-      google: { rating: 4.6, count: 6745, url: "https://search.google.com/local/reviews?placeid=ChIJKZI5O8MyHogRMAkx1ntablc" },
-      ta: { rating: 4.3, count: 1792, url: "https://www.tripadvisor.com/Attraction_Review-g60795-d117099-Reviews-Mutter_Museum-Philadelphia_Pennsylvania.html" } },
-    { name: "Museum of the American Revolution", fri: "9:30am - 6pm", sat: "9:30am - 6pm", q: "Museum of the American Revolution Philadelphia",
-      google: { rating: 4.7, count: 3812, url: "https://search.google.com/local/reviews?placeid=ChIJ74Iw4oTIxokRONknVjwsA2E" },
-      ta: { rating: 4.6, count: 1550, url: "https://www.tripadvisor.com/Attraction_Review-g60795-d12163505-Reviews-Museum_of_the_American_Revolution-Philadelphia_Pennsylvania.html" } },
-    { name: "Eastern State Penitentiary", fri: "10am - 5pm", sat: "10am - 5pm", q: "Eastern State Penitentiary Philadelphia",
-      google: { rating: 4.7, count: 2567, url: "https://search.google.com/local/reviews?placeid=ChIJu35ZOcnHxokRrTUi4cDYHm8" },
-      ta: { rating: 4.6, count: 6606, url: "https://www.tripadvisor.com/Attraction_Review-g60795-d102763-Reviews-Eastern_State_Penitentiary-Philadelphia_Pennsylvania.html" } },
-    { name: "Barnes Foundation", fri: "11am - 5pm", sat: "11am - 5pm", q: "Barnes Foundation Philadelphia",
-      google: { rating: 4.7, count: 4793, url: "https://search.google.com/local/reviews?placeid=ChIJrcsBU8vHxokR4FXP2BplJks" },
-      ta: { rating: 4.7, count: 5481, url: "https://www.tripadvisor.com/Attraction_Review-g60795-d3187840-Reviews-Barnes-Philadelphia_Pennsylvania.html" } },
-    { name: "American Swedish Historical Museum", fri: "10am - 4pm", sat: "12pm - 4pm", q: "American Swedish Historical Museum Philadelphia",
-      google: { rating: 4.8, count: 123, url: "https://search.google.com/local/reviews?placeid=ChIJYVEhh-nFxokRz8e5bsYPJ9w" },
-      ta: { rating: 4.1, count: 47, url: "https://www.tripadvisor.com/Attraction_Review-g60795-d138269-Reviews-American_Swedish_Historical_Museum-Philadelphia_Pennsylvania.html" } },
-    { name: "National Constitution Center", fri: "10am - 5pm", sat: "10am - 5pm", q: "National Constitution Center Philadelphia",
-      google: { rating: 4.6, count: 2735, url: "https://search.google.com/local/reviews?placeid=ChIJZ3LgS4HIxokRct8iqCzISOY" },
-      ta: { rating: 4.4, count: 1661, url: "https://www.tripadvisor.com/Attraction_Review-g60795-d278726-Reviews-National_Constitution_Center-Philadelphia_Pennsylvania.html" } },
-    { name: "Penn Museum", fri: "10am - 5pm", sat: "10am - 5pm", q: "Penn Museum Philadelphia",
-      google: { rating: 4.7, count: 3006, url: "https://search.google.com/local/reviews?placeid=ChIJvzKmO1vGxokRJm5brUPctFE" },
-      ta: { rating: 4.5, count: 543, url: "https://www.tripadvisor.com/Attraction_Review-g60795-d138271-Reviews-Penn_Museum-Philadelphia_Pennsylvania.html" } },
-    { name: "Science History Institute", fri: "Closed", sat: "Closed", q: "Science History Institute Philadelphia",
-      google: { rating: 4.7, count: 149, url: "https://search.google.com/local/reviews?placeid=ChIJ1w8B8ITIxokR00QnXb4v3Z8" },
-      ta: { rating: 4.4, count: 88, url: "https://www.tripadvisor.com/Attraction_Review-g60795-d484395-Reviews-Science_History_Institute-Philadelphia_Pennsylvania.html" } },
-    { name: "Academy of Natural Sciences", fri: "Closed", sat: "Closed", q: "Academy of Natural Sciences Philadelphia",
-      google: { rating: 4.6, count: 4199, url: "https://search.google.com/local/reviews?placeid=ChIJsQ12kDPGxokRYptRvAoz79o" },
-      ta: { rating: 4.1, count: 412, url: "https://www.tripadvisor.com/Attraction_Review-g60795-d107504-Reviews-Academy_of_Natural_Sciences_of_Drexel_University-Philadelphia_Pennsylvania.html" } },
-  ],
-  "Food": [
-    { name: "Reading Terminal Market", fri: "8am - 6pm", sat: "8am - 6pm", q: "Reading Terminal Market Philadelphia", link: "https://maps.app.goo.gl/u7ebjpXydBgcGweK9",
-      google: { rating: 4.7, count: 46579, url: "https://search.google.com/local/reviews?placeid=ChIJCQH7WCnGxokRAWsd3AfQj80" },
-      ta: { rating: 4.6, count: 11778, url: "https://www.tripadvisor.com/Restaurant_Review-g60795-d484853-Reviews-Reading_Terminal_Market-Philadelphia_Pennsylvania.html" } },
-    { name: "Sky Cafe", fri: "11am - 8pm", sat: "11am - 8pm", q: "Sky Cafe Indonesian Philadelphia", link: "https://maps.app.goo.gl/gnonpEcioCj5szE29",
-      google: { rating: 4.6, count: 904, url: "https://search.google.com/local/reviews?placeid=ChIJZRD1cgrGxokRvND1Vj4-n88" },
-      ta: { rating: 4.3, count: 7, url: "https://www.tripadvisor.com/Restaurant_Review-g60795-d13800490-Reviews-Sky_Cafe-Philadelphia_Pennsylvania.html" } },
-    { name: "Djakarta Cafe", fri: "11am - 7:30pm", sat: "11am - 7:30pm", q: "Djakarta Cafe Philadelphia", link: "https://maps.app.goo.gl/YQr3CmU9UZaC79YdA",
-      google: { rating: 4.8, count: 530, url: "https://search.google.com/local/reviews?placeid=ChIJC56KcgrGxokR152F7JeIrjo" },
-      ta: { rating: 4.9, count: 10, url: "https://www.tripadvisor.com/Restaurant_Review-g60795-d13510062-Reviews-D_jakarta_Cafe-Philadelphia_Pennsylvania.html" } },
-    { name: "Martabak Ok", fri: "12pm - 6pm", sat: "12pm - 6pm", q: "Martabak Ok Philadelphia", link: "https://maps.app.goo.gl/9Kk4kS91qRkxMvfQ7",
-      google: { rating: 4.7, count: 310, url: "https://search.google.com/local/reviews?placeid=ChIJeXkTSADHxokRY79JdvQzhyk" },
-      ta: { rating: null, count: 0, url: "https://www.tripadvisor.com/Restaurant_Review-g60795-d19665754-Reviews-Martabak_OK-Philadelphia_Pennsylvania.html" } },
-    { name: "Suraya Restaurant", fri: "11am - 2pm, 5pm - 11pm", sat: "10am - 2pm, 5pm - 11pm", q: "Suraya Restaurant Philadelphia", link: "https://share.google/MPWQhkVBzZ0Xt6K6A",
-      google: { rating: 4.7, count: 4246, url: "https://search.google.com/local/reviews?placeid=ChIJww__4mrIxokRiwIwVq26cxI" },
-      ta: { rating: 4.4, count: 190, url: "https://www.tripadvisor.com/Restaurant_Review-g60795-d13229582-Reviews-Suraya-Philadelphia_Pennsylvania.html" } },
-    { name: "Angelo's Pizzeria (736 S 9th St)", fri: "11am - 7pm", sat: "11am - 7pm", q: "Angelo's Pizzeria 736 S 9th St Philadelphia",
-      google: { rating: 4.6, count: 5121, url: "https://search.google.com/local/reviews?placeid=ChIJ-VWVqyHGxokRMGwj66qv2SY" },
-      ta: { rating: 4.6, count: 65, url: "https://www.tripadvisor.com/Restaurant_Review-g60795-d16853718-Reviews-Angelo_s_Pizzeria-Philadelphia_Pennsylvania.html" } },
-  ],
-};
+<h2>Museums</h2>
+<table border="1" cellpadding="6" cellspacing="0">
+<tr><th>Museum</th><th>Fri Nov 27</th><th>Sat Nov 28</th><th>Map</th></tr>
+<tr>
+<td><details><summary>Philadelphia Museum of Art</summary>
+Google: 4.8 ★ (23,813 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJ_5CoRebFxokR08ApAyF2KIs" target="_blank">read reviews</a><br>
+TripAdvisor: 4.7 ★ (7,527 reviews) <a href="https://www.tripadvisor.com/Attraction_Review-g60795-d10800264-Reviews-Philadelphia_Museum_of_Art-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>10am - 8:45pm</td>
+<td>10am - 5pm</td>
+<td><a href="https://www.google.com/maps/search/?api=1&amp;query=Philadelphia%20Museum%20of%20Art" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Rodin Museum</summary>
+Google: 4.6 ★ (2,002 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJ_5CoRebFxokRelxOueM6ctQ" target="_blank">read reviews</a><br>
+TripAdvisor: 4.5 ★ (1,493 reviews) <a href="https://www.tripadvisor.com/Attraction_Review-g60795-d104746-Reviews-Rodin_Museum-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>Not found</td>
+<td>Not found</td>
+<td><a href="https://www.google.com/maps/search/?api=1&amp;query=Rodin%20Museum%20Philadelphia" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Franklin Institute</summary>
+Google: 4.6 ★ (14,108 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJ05tdhjTGxokReHRD0wXejyE" target="_blank">read reviews</a><br>
+TripAdvisor: 4.3 ★ (3,230 reviews) <a href="https://www.tripadvisor.com/Attraction_Review-g60795-d1933077-Reviews-The_Franklin_Institute-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>9:30am - 5pm</td>
+<td>9:30am - 5pm</td>
+<td><a href="https://www.google.com/maps/search/?api=1&amp;query=Franklin%20Institute%20Philadelphia" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Mütter Museum</summary>
+Google: 4.6 ★ (6,745 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJKZI5O8MyHogRMAkx1ntablc" target="_blank">read reviews</a><br>
+TripAdvisor: 4.3 ★ (1,792 reviews) <a href="https://www.tripadvisor.com/Attraction_Review-g60795-d117099-Reviews-Mutter_Museum-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>10am - 5pm</td>
+<td>10am - 5pm</td>
+<td><a href="https://www.google.com/maps/search/?api=1&amp;query=Mutter%20Museum%20Philadelphia" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Museum of the American Revolution</summary>
+Google: 4.7 ★ (3,812 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJ74Iw4oTIxokRONknVjwsA2E" target="_blank">read reviews</a><br>
+TripAdvisor: 4.6 ★ (1,550 reviews) <a href="https://www.tripadvisor.com/Attraction_Review-g60795-d12163505-Reviews-Museum_of_the_American_Revolution-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>9:30am - 6pm</td>
+<td>9:30am - 6pm</td>
+<td><a href="https://www.google.com/maps/search/?api=1&amp;query=Museum%20of%20the%20American%20Revolution%20Philadelphia" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Eastern State Penitentiary</summary>
+Google: 4.7 ★ (2,567 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJu35ZOcnHxokRrTUi4cDYHm8" target="_blank">read reviews</a><br>
+TripAdvisor: 4.6 ★ (6,606 reviews) <a href="https://www.tripadvisor.com/Attraction_Review-g60795-d102763-Reviews-Eastern_State_Penitentiary-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>10am - 5pm</td>
+<td>10am - 5pm</td>
+<td><a href="https://www.google.com/maps/search/?api=1&amp;query=Eastern%20State%20Penitentiary%20Philadelphia" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Barnes Foundation</summary>
+Google: 4.7 ★ (4,793 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJrcsBU8vHxokR4FXP2BplJks" target="_blank">read reviews</a><br>
+TripAdvisor: 4.7 ★ (5,481 reviews) <a href="https://www.tripadvisor.com/Attraction_Review-g60795-d3187840-Reviews-Barnes-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>11am - 5pm</td>
+<td>11am - 5pm</td>
+<td><a href="https://www.google.com/maps/search/?api=1&amp;query=Barnes%20Foundation%20Philadelphia" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>American Swedish Historical Museum</summary>
+Google: 4.8 ★ (123 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJYVEhh-nFxokRz8e5bsYPJ9w" target="_blank">read reviews</a><br>
+TripAdvisor: 4.1 ★ (47 reviews) <a href="https://www.tripadvisor.com/Attraction_Review-g60795-d138269-Reviews-American_Swedish_Historical_Museum-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>10am - 4pm</td>
+<td>12pm - 4pm</td>
+<td><a href="https://www.google.com/maps/search/?api=1&amp;query=American%20Swedish%20Historical%20Museum%20Philadelphia" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>National Constitution Center</summary>
+Google: 4.6 ★ (2,735 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJZ3LgS4HIxokRct8iqCzISOY" target="_blank">read reviews</a><br>
+TripAdvisor: 4.4 ★ (1,661 reviews) <a href="https://www.tripadvisor.com/Attraction_Review-g60795-d278726-Reviews-National_Constitution_Center-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>10am - 5pm</td>
+<td>10am - 5pm</td>
+<td><a href="https://www.google.com/maps/search/?api=1&amp;query=National%20Constitution%20Center%20Philadelphia" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Penn Museum</summary>
+Google: 4.7 ★ (3,006 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJvzKmO1vGxokRJm5brUPctFE" target="_blank">read reviews</a><br>
+TripAdvisor: 4.5 ★ (543 reviews) <a href="https://www.tripadvisor.com/Attraction_Review-g60795-d138271-Reviews-Penn_Museum-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>10am - 5pm</td>
+<td>10am - 5pm</td>
+<td><a href="https://www.google.com/maps/search/?api=1&amp;query=Penn%20Museum%20Philadelphia" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Science History Institute</summary>
+Google: 4.7 ★ (149 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJ1w8B8ITIxokR00QnXb4v3Z8" target="_blank">read reviews</a><br>
+TripAdvisor: 4.4 ★ (88 reviews) <a href="https://www.tripadvisor.com/Attraction_Review-g60795-d484395-Reviews-Science_History_Institute-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>Closed</td>
+<td>Closed</td>
+<td><a href="https://www.google.com/maps/search/?api=1&amp;query=Science%20History%20Institute%20Philadelphia" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Academy of Natural Sciences</summary>
+Google: 4.6 ★ (4,199 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJsQ12kDPGxokRYptRvAoz79o" target="_blank">read reviews</a><br>
+TripAdvisor: 4.1 ★ (412 reviews) <a href="https://www.tripadvisor.com/Attraction_Review-g60795-d107504-Reviews-Academy_of_Natural_Sciences_of_Drexel_University-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>Closed</td>
+<td>Closed</td>
+<td><a href="https://www.google.com/maps/search/?api=1&amp;query=Academy%20of%20Natural%20Sciences%20Philadelphia" target="_blank">Map</a></td>
+</tr>
+</table>
 
-const $ = id => document.getElementById(id);
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const stars = r => { const f = Math.round(r); return "★".repeat(f) + "☆".repeat(5 - f); };
+<h2>Food</h2>
+<table border="1" cellpadding="6" cellspacing="0">
+<tr><th>Place</th><th>Fri Nov 27</th><th>Sat Nov 28</th><th>Map</th></tr>
+<tr>
+<td><details><summary>Reading Terminal Market</summary>
+Google: 4.7 ★ (46,579 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJCQH7WCnGxokRAWsd3AfQj80" target="_blank">read reviews</a><br>
+TripAdvisor: 4.6 ★ (11,778 reviews) <a href="https://www.tripadvisor.com/Restaurant_Review-g60795-d484853-Reviews-Reading_Terminal_Market-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>8am - 6pm</td>
+<td>8am - 6pm</td>
+<td><a href="https://maps.app.goo.gl/u7ebjpXydBgcGweK9" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Sky Cafe</summary>
+Google: 4.6 ★ (904 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJZRD1cgrGxokRvND1Vj4-n88" target="_blank">read reviews</a><br>
+TripAdvisor: 4.3 ★ (7 reviews) <a href="https://www.tripadvisor.com/Restaurant_Review-g60795-d13800490-Reviews-Sky_Cafe-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>11am - 8pm</td>
+<td>11am - 8pm</td>
+<td><a href="https://maps.app.goo.gl/gnonpEcioCj5szE29" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Djakarta Cafe</summary>
+Google: 4.8 ★ (530 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJC56KcgrGxokR152F7JeIrjo" target="_blank">read reviews</a><br>
+TripAdvisor: 4.9 ★ (10 reviews) <a href="https://www.tripadvisor.com/Restaurant_Review-g60795-d13510062-Reviews-D_jakarta_Cafe-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>11am - 7:30pm</td>
+<td>11am - 7:30pm</td>
+<td><a href="https://maps.app.goo.gl/YQr3CmU9UZaC79YdA" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Martabak Ok</summary>
+Google: 4.7 ★ (310 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJeXkTSADHxokRY79JdvQzhyk" target="_blank">read reviews</a><br>
+TripAdvisor: no reviews yet (<a href="https://www.tripadvisor.com/Restaurant_Review-g60795-d19665754-Reviews-Martabak_OK-Philadelphia_Pennsylvania.html" target="_blank">view listing</a>)
+</details></td>
+<td>12pm - 6pm</td>
+<td>12pm - 6pm</td>
+<td><a href="https://maps.app.goo.gl/9Kk4kS91qRkxMvfQ7" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Suraya Restaurant</summary>
+Google: 4.7 ★ (4,246 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJww__4mrIxokRiwIwVq26cxI" target="_blank">read reviews</a><br>
+TripAdvisor: 4.4 ★ (190 reviews) <a href="https://www.tripadvisor.com/Restaurant_Review-g60795-d13229582-Reviews-Suraya-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>11am - 2pm, 5pm - 11pm</td>
+<td>10am - 2pm, 5pm - 11pm</td>
+<td><a href="https://share.google/MPWQhkVBzZ0Xt6K6A" target="_blank">Map</a></td>
+</tr>
+<tr>
+<td><details><summary>Angelo's Pizzeria (736 S 9th St)</summary>
+Google: 4.6 ★ (5,121 reviews) <a href="https://search.google.com/local/reviews?placeid=ChIJ-VWVqyHGxokRMGwj66qv2SY" target="_blank">read reviews</a><br>
+TripAdvisor: 4.6 ★ (65 reviews) <a href="https://www.tripadvisor.com/Restaurant_Review-g60795-d16853718-Reviews-Angelo_s_Pizzeria-Philadelphia_Pennsylvania.html" target="_blank">read reviews</a>
+</details></td>
+<td>11am - 7pm</td>
+<td>11am - 7pm</td>
+<td><a href="https://www.google.com/maps/search/?api=1&amp;query=Angelo's%20Pizzeria%20736%20S%209th%20St%20Philadelphia" target="_blank">Map</a></td>
+</tr>
+</table>
 
-function reviewCard(cls, label, r) {
-  if (!r) return `<div class="rv none ${cls}"><div class="src">${label}</div><div class="score">No listing found</div></div>`;
-  const body = r.rating == null
-    ? `<div class="score">No reviews yet</div>`
-    : `<div class="score">${r.rating.toFixed(1)} <span class="stars">${stars(r.rating)}</span></div>
-       <div class="count">${r.count.toLocaleString()} reviews</div>`;
-  return `<a class="rv ${cls}${r.rating == null ? " none" : ""}" href="${esc(r.url)}" target="_blank" rel="noopener">
-    <div class="src">${label}</div>${body}<span class="more">${r.rating == null ? "View listing" : "Read reviews"} ↗</span></a>`;
-}
+<p><small>Ratings checked Nov 24, 2026.</small></p>
 
-const all = [];
-for (const [group, items] of Object.entries(PLACES)) {
-  const h = document.createElement("h2");
-  h.textContent = group;
-  $("tables").appendChild(h);
-
-  const t = document.createElement("table");
-  t.innerHTML = `<thead><tr><th class="c-name">${group === "Food" ? "Place" : "Museum"}</th>
-    <th class="c-day">Fri Nov 27</th><th class="c-day">Sat Nov 28</th><th class="c-map"></th></tr></thead>`;
-  const tb = document.createElement("tbody");
-
-  for (const p of items) {
-    const i = all.push(p) - 1;
-    const closed = p.fri === "Closed" && p.sat === "Closed";
-    const g = p.google && p.google.rating != null ? `Google ${p.google.rating.toFixed(1)}★` : "";
-    const tr = document.createElement("tr");
-    tr.className = "row" + (closed ? " closed" : "");
-    tr.innerHTML = `
-      <td class="name"><span class="chev">›</span>${esc(p.name)}<span class="mini">${g}${closed ? " · Closed both days" : ""}</span></td>
-      <td class="day"><span class="day-lbl">Fri</span>${esc(p.fri)}</td>
-      <td class="day"><span class="day-lbl">Sat</span>${esc(p.sat)}</td>
-      <td class="map"><button class="mapbtn" type="button">Map</button></td>`;
-
-    const dt = document.createElement("tr");
-    dt.className = "detail";
-    dt.innerHTML = `<td colspan="4"><div class="reviews">
-      ${reviewCard("g", "Google", p.google)}${reviewCard("t", "TripAdvisor", p.ta)}</div></td>`;
-
-    tr.addEventListener("click", () => {
-      const open = !dt.classList.contains("open");
-      dt.classList.toggle("open", open);
-      tr.classList.toggle("open", open);
-    });
-    tr.querySelector(".mapbtn").addEventListener("click", e => { e.stopPropagation(); openMap(i); });
-
-    tb.append(tr, dt);
-  }
-  t.appendChild(tb);
-  $("tables").appendChild(t);
-}
-
-let current = 0, listScroll = 0;
-
-function openMap(i) {
-  if (!$("mapView").classList.contains("on")) listScroll = window.scrollY;
-  current = (i + all.length) % all.length;
-  const p = all[current];
-  const q = encodeURIComponent(p.q);
-  $("frame").src = `https://maps.google.com/maps?q=${q}&z=15&output=embed`;
-  $("mName").textContent = p.name;
-  $("mHours").textContent = `Fri: ${p.fri} · Sat: ${p.sat}`;
-  $("mLink").href = p.link || `https://www.google.com/maps/search/?api=1&query=${q}`;
-  $("listView").style.display = "none";
-  $("mapView").classList.add("on");
-  history.replaceState(null, "", "#" + current);
-  window.scrollTo(0, 0);
-}
-
-function closeMap() {
-  $("mapView").classList.remove("on");
-  $("listView").style.display = "";
-  history.replaceState(null, "", location.pathname);
-  window.scrollTo(0, listScroll);
-}
-
-$("back").onclick = closeMap;
-$("prev").onclick = () => openMap(current - 1);
-$("next").onclick = () => openMap(current + 1);
-document.addEventListener("keydown", e => {
-  if (!$("mapView").classList.contains("on")) return;
-  if (e.key === "Escape") closeMap();
-  if (e.key === "ArrowLeft") openMap(current - 1);
-  if (e.key === "ArrowRight") openMap(current + 1);
-});
-</script>
 </body>
 </html>
